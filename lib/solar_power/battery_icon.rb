@@ -15,15 +15,15 @@ module SolarPower
     end
 
     def outline
-      grey = ChunkyPNG::Color(0xddddddff)
+      line_color = ChunkyPNG::Color('white')
 
-      @image[3, 0] = grey
-      @image[4, 0] = grey
-      @image.rect(2, 1, 5, 7, grey)
+      @image[3, 0] = line_color
+      @image[4, 0] = line_color
+      @image.rect(2, 1, 5, 7, line_color)
     end
 
     def power
-      green   = ChunkyPNG::Color(0x22aa13ff)
+      green   = ChunkyPNG::Color(0x8aff0fff)
 
       # Start at a y of 6 and end at 2
       ys      = 6.downto(2).to_a
@@ -41,11 +41,20 @@ module SolarPower
       if (y = ys.shift) && partial > 0.0
         # Darken the color
         h, s, l      = ChunkyPNG::Color.to_hsl(green)
-        darker_green = ChunkyPNG::Color.from_hsl(h, s, l * partial)
+        dark_l       = percentage_of_range(0.154, l, partial)
+        darker_green = ChunkyPNG::Color.from_hsl(h, s, dark_l)
 
         @image[3, y] = darker_green
         @image[4, y] = darker_green
       end
+    end
+
+    def percentage_of_range(min, max, percentage)
+      if max < min
+        max = min
+      end
+
+      (max - min) * percentage + min
     end
   end
 end

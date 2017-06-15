@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH << File.expand_path("../../lib", __FILE__)
+
+require 'solar_power'
+require 'solar_power/battery_icon'
+
+if percentage = ARGV.first
+  percentage = percentage.to_i
+else
+  percentage = 75
+end
+
+png = SolarPower::BatteryIcon.new(percentage).png
+
+File.open('file.png', 'w') do |io|
+  io << png
+end
+

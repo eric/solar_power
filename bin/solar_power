@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH << File.expand_path("../../lib", __FILE__)
-$stdout.sync = true
+
+# Ensure the output is flushed
+STDOUT.sync = true
+STDERR.sync = true
 
 require 'solar_power'
 require 'solar_power/cli'

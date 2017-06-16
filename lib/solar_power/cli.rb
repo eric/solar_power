@@ -3,6 +3,8 @@ require 'base64'
 
 require 'solar_power/battery_icon'
 require 'solar_power/lametric_client'
+require 'solar_power/egauge_client'
+require 'solar_power/egauge_usage'
 
 module SolarPower
   class Cli
@@ -30,6 +32,8 @@ module SolarPower
         write_image
       when 'update'
         update
+      when 'solar_usage'
+        solar_usage
       else
         puts "#{program_name}: '#{command}' is not a command. see '#{program_name} --help'."
         exit(1)
@@ -104,6 +108,30 @@ module SolarPower
           :index => 0
         }
       ]
+    end
+
+    def solar_usage
+      lametric = SolarPower::LaMetricClient.new(
+        Configlet[:lametric_url], Configlet[:lametric_access_token])
+
+      egauge = SolarPower::EGaugeClient.new(
+        Configlet[:egauge_url], Configlet[:egauge_user],
+        Configlet[:egauge_password])
+
+      egauge_usage = egauge.total_usage
+      percentage   = egauge_usage.percentage_generated.to_i
+
+      icon = SolarPower::BatteryIcon.new(percentage)
+
+      lametric.update :frames => [
+        {
+          :text => "#{percentage}%",
+          :icon => "data:image/png;base64,#{Base64.encode64(icon.png)}",
+          :index => 0
+        }
+      ]
+
+      puts "Used #{egauge_usage.used.round(1)} kWh. Generated #{egauge_usage.generated.round(1)} kWh. Updated LaMetric to #{percentage}%"
     end
 
     def read_env_from_file(filename)

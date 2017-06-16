@@ -6,4 +6,4 @@ WORKDIR /solar_power
 
 RUN bundle install
 
-ENTRYPOINT ["bundle", "exec", "bin/solar_power", "run"]
+ENTRYPOINT ["bundle", "exec", "bin/solar_power"]

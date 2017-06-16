@@ -148,6 +148,10 @@ module SolarPower
         egauge_usage = nil
         begin
           egauge_usage = egauge.total_usage
+        rescue Faraday::TimeoutError
+          puts "No response from eGauge"
+          sleep 1
+          next
         rescue Faraday::ConnectionFailed => e
           puts "Couldn't fetch data from eGauge: #{e.message}"
           sleep 1
@@ -166,6 +170,10 @@ module SolarPower
               :index => 0
             }
           ]
+        rescue Faraday::TimeoutError
+          puts "No response from LaMetric"
+          sleep 1
+          next
         rescue Faraday::ConnectionFailed => e
           puts "Couldn't update LaMetric: #{e.message}"
           sleep 1

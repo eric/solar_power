@@ -1,6 +1,6 @@
 FROM ruby:2.4
 
-RUN git clone https://github.com/eric/solar_power.git
+RUN git clone --depth=1 https://github.com/eric/solar_power.git
 
 WORKDIR /solar_power
 

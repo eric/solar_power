@@ -34,6 +34,8 @@ module SolarPower
         update
       when 'solar_usage'
         solar_usage
+      when 'run'
+        run
       else
         puts "#{program_name}: '#{command}' is not a command. see '#{program_name} --help'."
         exit(1)
@@ -132,6 +134,34 @@ module SolarPower
       ]
 
       puts "Used #{egauge_usage.used.round(1)} kWh. Generated #{egauge_usage.generated.round(1)} kWh. Updated LaMetric to #{percentage}%"
+    end
+
+    def run
+      lametric = SolarPower::LaMetricClient.new(
+        Configlet[:lametric_url], Configlet[:lametric_access_token])
+
+      egauge = SolarPower::EGaugeClient.new(
+        Configlet[:egauge_url], Configlet[:egauge_user],
+        Configlet[:egauge_password])
+
+      while true
+        egauge_usage = egauge.total_usage
+        percentage   = egauge_usage.percentage_generated.to_i
+
+        icon = SolarPower::BatteryIcon.new(percentage)
+
+        lametric.update :frames => [
+          {
+            :text => "#{percentage}%",
+            :icon => "data:image/png;base64,#{Base64.encode64(icon.png)}",
+            :index => 0
+          }
+        ]
+
+        puts "Used #{egauge_usage.used.round(1)} kWh. Generated #{egauge_usage.generated.round(1)} kWh. Updated LaMetric to #{percentage}%"
+
+        sleep 60 * 15
+      end
     end
 
     def read_env_from_file(filename)

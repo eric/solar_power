@@ -14,6 +14,8 @@ module SolarPower
         conn.response :mashify
 
         conn.adapter Faraday.default_adapter
+
+        conn.options.timeout = 5 # open/read timeout in seconds
       end
     end
 

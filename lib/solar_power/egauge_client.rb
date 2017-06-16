@@ -19,6 +19,8 @@ module SolarPower
       @connection = self.class.connection.dup.tap do |conn|
         conn.url_prefix = url
         conn.digest_auth username, password
+
+        conn.options.timeout = 5 # open/read timeout in seconds
       end
     end
 

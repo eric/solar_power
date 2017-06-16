@@ -145,18 +145,32 @@ module SolarPower
         Configlet[:egauge_password])
 
       while true
-        egauge_usage = egauge.total_usage
-        percentage   = egauge_usage.percentage_generated.to_i
+        egauge_usage = nil
+        begin
+          egauge_usage = egauge.total_usage
+        rescue Faraday::ConnectionFailed => e
+          puts "Couldn't fetch data from eGauge: #{e.message}"
+          sleep 1
+          next
+        end
+
+        percentage = egauge_usage.percentage_generated.to_i
 
         icon = SolarPower::BatteryIcon.new(percentage)
 
-        lametric.update :frames => [
-          {
-            :text => "#{percentage}%",
-            :icon => "data:image/png;base64,#{Base64.encode64(icon.png)}",
-            :index => 0
-          }
-        ]
+        begin
+          lametric.update :frames => [
+            {
+              :text => "#{percentage}%",
+              :icon => "data:image/png;base64,#{Base64.encode64(icon.png)}",
+              :index => 0
+            }
+          ]
+        rescue Faraday::ConnectionFailed => e
+          puts "Couldn't update LaMetric: #{e.message}"
+          sleep 1
+          next
+        end
 
         puts "Used #{egauge_usage.used.round(1)} kWh. Generated #{egauge_usage.generated.round(1)} kWh. Updated LaMetric to #{percentage}%"
 

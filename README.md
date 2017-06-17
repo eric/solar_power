@@ -2,6 +2,8 @@
 
 A simple app to send statistics from an [eGauge][] energy monitor to a [LaMetric][] clock.
 
+![Working example](docs/example.jpg)
+
 ## Notes
 
 This is a work in progress and has been created to solve a very specific situation I have that is likely not going to be useful to anyone other than me.

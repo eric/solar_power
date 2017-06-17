@@ -16,7 +16,11 @@ module SolarPower
     end
 
     def call
-      Configlet.prefix = 'solar_power'
+      Configlet.config :solar_power do
+        default :poll_interval => 10 * 60
+
+        munge(:poll_interval) { |v| v.to_i }
+      end
 
       read_env_from_file(File.expand_path("~/.solar_power.env"))
       read_env_from_file(File.expand_path("../../../.env", __FILE__))
@@ -79,15 +83,7 @@ module SolarPower
     end
 
     def update
-      unless Configlet[:lametric_url]
-        puts "SOLAR_POWER_LAMETRIC_URL= must be defined"
-        exit(1)
-      end
-
-      unless Configlet[:lametric_access_token]
-        puts "SOLAR_POWER_LAMETRIC_ACCESS_TOKEN= must be defined"
-        exit(1)
-      end
+      assert_configlet_options(:lametric_url, :lametric_access_token)
 
       if percentage = @args.shift
         percentage = percentage.to_i
@@ -113,6 +109,9 @@ module SolarPower
     end
 
     def solar_usage
+      assert_configlet_options(:lametric_url, :lametric_access_token,
+        :egauge_url, :egauge_user, :egauge_password)
+
       lametric = SolarPower::LaMetricClient.new(
         Configlet[:lametric_url], Configlet[:lametric_access_token])
 
@@ -137,6 +136,9 @@ module SolarPower
     end
 
     def run
+      assert_configlet_options(:lametric_url, :lametric_access_token,
+        :egauge_url, :egauge_user, :egauge_password)
+
       lametric = SolarPower::LaMetricClient.new(
         Configlet[:lametric_url], Configlet[:lametric_access_token])
 
@@ -182,7 +184,22 @@ module SolarPower
 
         puts "Used #{egauge_usage.used.round(1)} kWh. Generated #{egauge_usage.generated.round(1)} kWh. Updated LaMetric to #{percentage}%"
 
-        sleep 60 * 15
+        sleep Configlet[:poll_interval]
+      end
+    end
+
+    def assert_configlet_options(*options)
+      messages = []
+
+      options.flatten.uniq.each do |option|
+        unless Configlet[option]
+          messages << "#{Configlet.prefix.upcase}_#{option.upcase}= must be defined"
+        end
+      end
+
+      unless messages.empty?
+        puts messages.join("\n")
+        exit(1)
       end
     end
 
